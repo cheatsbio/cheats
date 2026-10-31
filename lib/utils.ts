@@ -5,7 +5,7 @@ export const HEX_RE = /^#[0-9a-fA-F]{6}$/;
 export const RESERVED_USERNAMES = new Set([
   "login", "register", "dashboard", "api", "admin", "settings", "auth",
   "www", "app", "static", "_next", "about", "terms", "privacy", "help",
-  "support", "murmur",
+  "support", "cheats",
 ]);
 
 /** True when a hex colour is bright enough to need dark text on top. */

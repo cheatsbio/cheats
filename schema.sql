@@ -1,5 +1,5 @@
 -- =====================================================================
--- Murmur — Supabase schema. Run once in: Dashboard → SQL Editor → New query
+-- Cheats — Supabase schema. Run once in: Dashboard → SQL Editor → New query
 -- =====================================================================
 
 create extension if not exists "pgcrypto";

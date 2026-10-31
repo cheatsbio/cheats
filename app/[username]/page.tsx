@@ -24,10 +24,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const name = profile.display_name || profile.username;
   return {
     title: name,
-    description: profile.bio ?? `${name} on Murmur`,
+    description: profile.bio ?? `${name} on Cheats`,
     openGraph: {
       title: name,
-      description: profile.bio ?? `${name} on Murmur`,
+      description: profile.bio ?? `${name} on Cheats`,
       images: profile.avatar_url ? [profile.avatar_url] : undefined,
     },
   };

@@ -93,7 +93,7 @@ export default function ProfileView({ profile, links, preview = false }: Props) 
 
   useEffect(() => {
     if (preview || !profile.id) return;
-    const key = `murmur:viewed:${profile.id}`;
+    const key = `cheats:viewed:${profile.id}`;
     try {
       if (sessionStorage.getItem(key)) return;
       sessionStorage.setItem(key, "1");

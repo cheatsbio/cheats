@@ -75,7 +75,7 @@ export default function AuthForm({ mode }: { mode: "login" | "register" }) {
     <main className="flex min-h-screen items-center justify-center px-6 py-12">
       <div className="w-full max-w-sm">
         <Link href="/" className="font-display text-xl font-bold tracking-tight">
-          murmur
+          cheats
         </Link>
         <h1 className="mt-8 font-display text-3xl font-bold tracking-tight">
           {isRegister ? "Create your page" : "Welcome back"}

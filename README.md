@@ -1,4 +1,4 @@
-# Murmur — link-in-bio on Next.js + Supabase
+# Cheats — link-in-bio on Next.js + Supabase
 
 ## Setup
 1. Create a project at https://supabase.com.

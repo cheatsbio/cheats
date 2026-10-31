@@ -16,7 +16,7 @@ const body = Figtree({
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
-  title: { default: "Murmur — one page for everything you share", template: "%s · Murmur" },
+  title: { default: "Cheats — one page for everything you share", template: "%s · Cheats" },
   description:
     "Build a link-in-bio page with your own background, music and glow. Free, fast, and yours.",
 };
