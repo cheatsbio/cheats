@@ -22,7 +22,6 @@ export default async function DashboardPage() {
     .eq("id", user.id)
     .maybeSingle<Profile>();
 
-  // Accounts created before the signup trigger existed get a profile on first visit.
   if (!profile) {
     const fallback = `user${user.id.replace(/-/g, "").slice(0, 8)}`;
     const { data: created } = await supabase
