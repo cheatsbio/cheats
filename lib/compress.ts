@@ -1,26 +1,15 @@
-/**
- * Client-side image crushing. Everything here runs in the browser so the raw
- * photo never leaves the device: it is decoded, resized on a canvas and
- * re-encoded as WebP before it is uploaded to Supabase Storage.
- */
-
 export type ImagePreset = "avatar" | "background";
 
 interface PresetConfig {
   maxWidth: number;
   maxHeight: number;
-  /** Starting WebP quality, 0–1. */
   quality: number;
-  /** Centre-crop to a square before resizing (used for avatars). */
   square: boolean;
-  /** If the first encode is bigger than this, quality steps down (never below MIN_QUALITY). */
   softLimitBytes: number;
 }
 
 export const IMAGE_PRESETS: Record<ImagePreset, PresetConfig> = {
-  // 250×250 at 55% → roughly 10–20 KB
   avatar: { maxWidth: 250, maxHeight: 250, quality: 0.55, square: true, softLimitBytes: 24 * 1024 },
-  // 1280px wide at 50% → roughly 40–80 KB
   background: { maxWidth: 1280, maxHeight: 1920, quality: 0.5, square: false, softLimitBytes: 90 * 1024 },
 };
 
@@ -28,7 +17,6 @@ const MIN_QUALITY = 0.3;
 const QUALITY_STEP = 0.08;
 const MAX_RETRIES = 3;
 
-/** Raw files above this are rejected before decoding so a huge photo can't freeze the tab. */
 export const MAX_RAW_IMAGE_BYTES = 15 * 1024 * 1024;
 
 const ACCEPTED_IMAGE_TYPES = [
@@ -40,14 +28,12 @@ const ACCEPTED_IMAGE_TYPES = [
   "image/bmp",
 ];
 
-/** Value for <input accept> on image pickers. */
 export const IMAGE_ACCEPT = ACCEPTED_IMAGE_TYPES.join(",");
 
 export interface CompressedImage {
   blob: Blob;
   width: number;
   height: number;
-  /** Quality actually used for the final encode. */
   quality: number;
   originalBytes: number;
 }
@@ -76,7 +62,6 @@ async function decode(file: File): Promise<Decoded> {
         release: () => bitmap.close(),
       };
     } catch {
-      // Fall through to the <img> decoder (older Safari, odd formats).
     }
   }
 
@@ -105,7 +90,6 @@ function encodeWebp(canvas: HTMLCanvasElement, quality: number): Promise<Blob> {
         if (!blob) {
           reject(new Error("The image couldn't be compressed. Try a different file."));
         } else if (blob.type !== "image/webp") {
-          // Browsers that can't encode WebP silently hand back a PNG.
           reject(
             new Error(
               "This browser can't export WebP images. Use a current version of Chrome, Edge, Firefox or Safari."
@@ -121,10 +105,6 @@ function encodeWebp(canvas: HTMLCanvasElement, quality: number): Promise<Blob> {
   });
 }
 
-/**
- * Resizes and re-encodes an image as WebP. Never upscales. Animated GIFs
- * keep only their first frame.
- */
 export async function compressImage(file: File, preset: ImagePreset): Promise<CompressedImage> {
   if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
     throw new Error("Choose a PNG, JPG, WebP, GIF or AVIF image.");
@@ -137,7 +117,6 @@ export async function compressImage(file: File, preset: ImagePreset): Promise<Co
   const decoded = await decode(file);
 
   try {
-    // Source rectangle: whole image, or a centred square for avatars.
     let sx = 0;
     let sy = 0;
     let sw = decoded.width;
