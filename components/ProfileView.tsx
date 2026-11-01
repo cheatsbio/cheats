@@ -13,18 +13,15 @@ interface Props {
   profile: Omit<Profile, "id" | "created_at" | "views"> &
     Partial<Pick<Profile, "id" | "created_at" | "views">>;
   links: Pick<LinkItem, "id" | "title" | "url" | "icon">[];
-  /** Dashboard mode: no entry gate, no audio, no view/click tracking, contained in its parent. */
   preview?: boolean;
 }
 
-/** Links using these icons are shown in the footer bar instead of the main list. */
 const SOCIAL_ICONS = new Set([
   "instagram", "twitter", "github", "twitch", "youtube", "facebook", "linkedin",
 ]);
 
 const numberFormat = new Intl.NumberFormat("en-US");
 
-/** Safe value for a CSS url() so a stray quote can't break out of the declaration. */
 function cssUrl(url: string): string {
   return `url("${url.replace(/["\\\n\r]/g, (c) => encodeURIComponent(c))}")`;
 }
@@ -68,7 +65,6 @@ export default function ProfileView({ profile, links, preview = false }: Props) 
   const reduceMotion = useReducedMotion();
   const hasMusic = !preview && !!profile.music_url;
 
-  // The gate only exists to unlock audio, so it only shows when there is music.
   const [entered, setEntered] = useState(!hasMusic);
   const [muted, setMuted] = useState(false);
   const [views, setViews] = useState(profile.views ?? 0);
@@ -85,7 +81,6 @@ export default function ProfileView({ profile, links, preview = false }: Props) 
   const socialLinks = links.filter((l) => SOCIAL_ICONS.has(l.icon));
   const mainLinks = links.filter((l) => !SOCIAL_ICONS.has(l.icon));
 
-  /* ---------- Views: count this visit once per browser session, then follow live updates ---------- */
 
   useEffect(() => {
     setViews((prev) => Math.max(prev, profile.views ?? 0));
@@ -98,7 +93,6 @@ export default function ProfileView({ profile, links, preview = false }: Props) 
       if (sessionStorage.getItem(key)) return;
       sessionStorage.setItem(key, "1");
     } catch {
-      // Storage can be blocked; counting the visit anyway is better than losing it.
     }
     trackView(profile.id)
       .then((total) => {
@@ -126,7 +120,6 @@ export default function ProfileView({ profile, links, preview = false }: Props) 
     };
   }, [preview, profile.id]);
 
-  /* ---------- Audio gate ---------- */
 
   function enter() {
     setEntered(true);
@@ -140,7 +133,6 @@ export default function ProfileView({ profile, links, preview = false }: Props) 
     if (audioRef.current) audioRef.current.muted = next;
   }
 
-  /* ---------- Motion ---------- */
 
   const container: Variants = useMemo(
     () => ({
@@ -177,7 +169,6 @@ export default function ProfileView({ profile, links, preview = false }: Props) 
       }
       style={{ backgroundColor: profile.theme_color, cursor }}
     >
-      {/* Full-screen background */}
       <div aria-hidden className={`${layer} inset-0 z-0`}>
         {profile.background_type === "image" && profile.background_url && (
           <div
@@ -228,7 +219,6 @@ export default function ProfileView({ profile, links, preview = false }: Props) 
           }`}
         >
           <div className={preview ? "p-5" : "p-6 sm:p-10"}>
-            {/* Header */}
             <motion.header variants={item} className="flex items-center gap-4 sm:gap-5">
               {profile.avatar_url ? (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -265,7 +255,6 @@ export default function ProfileView({ profile, links, preview = false }: Props) 
               </div>
             </motion.header>
 
-            {/* Bio */}
             {profile.bio && (
               <motion.p
                 variants={item}
@@ -277,7 +266,6 @@ export default function ProfileView({ profile, links, preview = false }: Props) 
               </motion.p>
             )}
 
-            {/* Links */}
             {mainLinks.length > 0 && (
               <ul className={`flex flex-col gap-2.5 ${preview ? "mt-6" : "mt-9"}`}>
                 {mainLinks.map((link) => {
@@ -317,7 +305,6 @@ export default function ProfileView({ profile, links, preview = false }: Props) 
             )}
           </div>
 
-          {/* Footer: socials + views */}
           <motion.footer
             variants={item}
             className={`flex items-center justify-between gap-4 border-t border-white/5 bg-black/30 ${
