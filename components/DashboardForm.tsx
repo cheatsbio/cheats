@@ -15,18 +15,14 @@ import {
 } from "@/app/dashboard/actions";
 import type { BackgroundType, LinkItem, Profile, ProfileInput } from "@/lib/types";
 
-/* ---------- Media rules ---------- */
-
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 const PUBLIC_MARKER = "/storage/v1/object/public/";
 const MAX_CURSOR_BYTES = 100 * 1024;
 
-/** True when a URL points at this project's own Supabase Storage (so it is hidden in the UI). */
 function isStorageUrl(url: string | null | undefined): boolean {
   return !!url && SUPABASE_URL !== "" && url.startsWith(SUPABASE_URL) && url.includes(PUBLIC_MARKER);
 }
 
-/** Splits one of our storage URLs into bucket + path. Returns null for foreign files. */
 function parseOwnedStorageUrl(
   url: string | null | undefined,
   userId: string
@@ -42,11 +38,9 @@ function parseOwnedStorageUrl(
   } catch {
     return null;
   }
-  // Only ever delete inside the signed-in user's own folder.
   return path.startsWith(`${userId}/`) ? { bucket, path } : null;
 }
 
-/** The profile table keeps a single background URL; the editor keeps one slot per kind. */
 function resolveBackground(
   type: BackgroundType,
   image: string | null,
@@ -100,7 +94,6 @@ export default function DashboardForm({ userId, initialProfile, initialLinks }: 
   const [uploading, setUploading] = useState<string | null>(null);
   const [dirty, setDirty] = useState(false);
 
-  // Image and video backgrounds each get a slot; only one is sent to the database.
   const [bgImage, setBgImage] = useState<string | null>(() => {
     const url = initialProfile.background_url;
     if (initialProfile.background_type === "image") return url;
@@ -115,7 +108,6 @@ export default function DashboardForm({ userId, initialProfile, initialLinks }: 
   });
   const [previewVideo, setPreviewVideo] = useState(bgVideo);
 
-  // Files that the saved profile points at. They are only deleted after a successful save.
   const savedUrls = useRef<Set<string>>(
     new Set(
       [
@@ -153,7 +145,6 @@ export default function DashboardForm({ userId, initialProfile, initialLinks }: 
     setDirty(true);
   }
 
-  /* ---------- Storage housekeeping ---------- */
 
   function removeOwnedFile(url: string) {
     const target = parseOwnedStorageUrl(url, userId);
@@ -161,10 +152,6 @@ export default function DashboardForm({ userId, initialProfile, initialLinks }: 
     void supabase.storage.from(target.bucket).remove([target.path]);
   }
 
-  /**
-   * Called when a stored file is replaced or removed. Files the saved profile still
-   * points at are deleted after the next successful save; unsaved uploads go right away.
-   */
   function retire(url: string | null | undefined) {
     if (!url || !parseOwnedStorageUrl(url, userId)) return;
     if (savedUrls.current.has(url)) pendingDeletes.current.add(url);
@@ -178,7 +165,6 @@ export default function DashboardForm({ userId, initialProfile, initialLinks }: 
     contentType: string
   ): Promise<string | null> {
     const { error } = await supabase.storage.from(bucket).upload(path, body, {
-      // Names are unique per upload, so browsers and the CDN can cache them for a year.
       cacheControl: "31536000",
       upsert: false,
       contentType,
@@ -190,7 +176,6 @@ export default function DashboardForm({ userId, initialProfile, initialLinks }: 
     return supabase.storage.from(bucket).getPublicUrl(path).data.publicUrl;
   }
 
-  /* ---------- Uploads ---------- */
 
   async function uploadAvatar(rawFile: File) {
     setUploading("avatar");
@@ -301,7 +286,6 @@ export default function DashboardForm({ userId, initialProfile, initialLinks }: 
     }
   }
 
-  /* ---------- Removals ---------- */
 
   function removeAvatar() {
     retire(profile.avatar_url);
@@ -324,7 +308,6 @@ export default function DashboardForm({ userId, initialProfile, initialLinks }: 
     set("custom_cursor_url", null);
   }
 
-  /* ---------- Save ---------- */
 
   function save() {
     const videoText = bgVideo.trim();
@@ -353,7 +336,6 @@ export default function DashboardForm({ userId, initialProfile, initialLinks }: 
       );
       const stale = new Set<string>(pendingDeletes.current);
 
-      // The database holds one background. Saving as video replaces an uploaded image.
       if (payload.background_type === "video" && bgImage && !keep.has(bgImage)) {
         stale.add(bgImage);
         setBgImage(null);
@@ -374,7 +356,6 @@ export default function DashboardForm({ userId, initialProfile, initialLinks }: 
   const previewVideoValue = previewVideo.trim() ? normalizeUrl(previewVideo, false) : null;
   const previewBackground = resolveBackground(profile.background_type, bgImage, previewVideoValue);
 
-  /* ---------------- Links ---------------- */
 
   async function addLink(e: React.FormEvent) {
     e.preventDefault();
@@ -513,7 +494,6 @@ export default function DashboardForm({ userId, initialProfile, initialLinks }: 
                 accept={IMAGE_ACCEPT}
                 busy={uploading === "avatar"}
                 uploadText="Upload avatar"
-                hint="Cropped to a square and crushed to 250×250 WebP (about 10–20 KB)."
                 onFile={uploadAvatar}
                 onRemove={removeAvatar}
               />
@@ -764,7 +744,6 @@ export default function DashboardForm({ userId, initialProfile, initialLinks }: 
   );
 }
 
-/* ================= Sub-components ================= */
 
 function ColorField({
   id, label, value, onChange,
@@ -831,7 +810,6 @@ function FileButton({
   );
 }
 
-/** Replaces a raw URL with a status badge plus Upload New / Remove. */
 function AssetStatus({
   badge, thumbUrl, accept, busy, onFile, onRemove,
 }: {
