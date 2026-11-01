@@ -9,10 +9,6 @@ interface Props {
   onEnter: () => void;
 }
 
-/**
- * Full-screen blurred gate. The click is a user gesture, which is what lets
- * the browser allow audio playback afterwards.
- */
 export default function ClickToEnterOverlay({ displayName, avatarUrl, accent, onEnter }: Props) {
   return (
     <motion.button
